@@ -37,6 +37,17 @@ python export_session.py
 
 ### Usage
 
+On Windows, you can use `export_session.bat` instead of `python export_session.py`:
+
+```bat
+export_session.bat
+export_session.bat --list
+export_session.bat "keyword"
+export_session.bat --all -o D:\exports
+```
+
+Or with Python directly:
+
 ```bash
 # Interactive session picker
 python export_session.py
@@ -97,6 +108,17 @@ python export_session.py
 
 ### 使用方法
 
+Windows 用户可以直接使用 `export_session.bat`，无需输入 `python`：
+
+```bat
+export_session.bat
+export_session.bat --list
+export_session.bat "关键词"
+export_session.bat --all -o D:\exports
+```
+
+或直接用 Python 运行：
+
 ```bash
 # 交互式会话选择
 python export_session.py
@@ -156,6 +178,17 @@ python export_session.py
 ```
 
 ### 使い方
+
+Windows では `export_session.bat` を使えば `python` を省略できます：
+
+```bat
+export_session.bat
+export_session.bat --list
+export_session.bat "キーワード"
+export_session.bat --all -o D:\exports
+```
+
+または Python で直接実行：
 
 ```bash
 # インタラクティブなセッション選択
