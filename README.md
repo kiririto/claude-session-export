@@ -70,6 +70,28 @@ python export_session.py --all -o D:\exports
 Files are saved to your system Downloads folder by default.
 Filename format: `YYYY-MM-DD_HH-MM_first-message-title_ctx.md`
 
+### Claude Code Hook (Optional)
+
+If you use Claude Code, install the hook to prevent Claude from accidentally summarizing
+exported files via Task agent (it should read them directly for best results):
+
+1. Copy `hooks/check_ctx_file_agent.py` to `~/.claude/hooks/`
+2. Add to `~/.claude/settings.json` under `hooks.PreToolUse`:
+
+```json
+{
+  "matcher": "Task",
+  "hooks": [
+    {
+      "type": "command",
+      "command": "python -c \"from pathlib import Path; import subprocess, sys; script = Path.home() / '.claude' / 'hooks' / 'check_ctx_file_agent.py'; subprocess.run([sys.executable, str(script)], stdin=sys.stdin)\""
+    }
+  ]
+}
+```
+
+> Without the hook, Claude Code still works fine — the hook is just a safety guard.
+
 ### License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
@@ -141,6 +163,15 @@ python export_session.py --all -o D:\exports
 默认保存到系统的下载文件夹。
 文件名格式：`YYYY-MM-DD_HH-MM_首条消息标题_ctx.md`
 
+### Claude Code Hook（可选）
+
+如果你使用 Claude Code，可以安装此 hook，防止 Claude 通过 Task agent 错误地摘要导出文件（应该直接读取以获得最佳效果）：
+
+1. 将 `hooks/check_ctx_file_agent.py` 复制到 `~/.claude/hooks/`
+2. 在 `~/.claude/settings.json` 的 `hooks.PreToolUse` 中添加（参考英文部分的 JSON 配置）
+
+> 没有 hook 也不影响正常使用，hook 只是一个安全防护。
+
 ### 许可证
 本项目使用 MIT 许可证 - 详见 [LICENSE](LICENSE) 文件。
 
@@ -211,6 +242,15 @@ python export_session.py --all -o D:\exports
 ### 出力
 デフォルトの保存先はシステムのダウンロードフォルダです。
 ファイル名形式：`YYYY-MM-DD_HH-MM_最初のメッセージタイトル_ctx.md`
+
+### Claude Code Hook（オプション）
+
+Claude Code を使用する場合、このhookをインストールするとTask agentによる誤った要約読み込みを防げます（直接読み込みで最良の結果が得られます）：
+
+1. `hooks/check_ctx_file_agent.py` を `~/.claude/hooks/` にコピー
+2. `~/.claude/settings.json` の `hooks.PreToolUse` に追加（英語セクションのJSON設定を参照）
+
+> hookなしでも通常通り使用できます。hookはあくまで安全ガードです。
 
 ### ライセンス
 このプロジェクトは MIT ライセンスの下で公開されています - 詳細は [LICENSE](LICENSE) ファイルを参照してください。
