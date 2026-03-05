@@ -59,7 +59,7 @@ DEFAULT_OUTPUT_DIR = _get_downloads_folder()
 TOOL_RESULT_MAX_CHARS = 500
 
 # Max lines per output file (Claude Code Read tool hard limit is 2000 lines)
-MAX_LINES_PER_FILE = 1800
+MAX_LINES_PER_FILE = 1200
 
 
 # ─── Session discovery ────────────────────────────────────────────────────────
