@@ -518,10 +518,10 @@ def export_session(jsonl_file: Path, output_dir: Path, include_subagents: bool =
     parts = _split_markdown(md, MAX_LINES_PER_FILE)
 
     if len(parts) == 1:
-        out_file = output_dir / f"{date_str}_{time_str}_{title}.md"
+        out_file = output_dir / f"{date_str}_{time_str}_{title}_ctx.md"
         counter = 1
         while out_file.exists():
-            out_file = output_dir / f"{date_str}_{time_str}_{title}_{counter}.md"
+            out_file = output_dir / f"{date_str}_{time_str}_{title}_ctx_{counter}.md"
             counter += 1
         out_file.write_text(parts[0], encoding="utf-8")
         return out_file
@@ -529,7 +529,7 @@ def export_session(jsonl_file: Path, output_dir: Path, include_subagents: bool =
         # Multi-part: add Part N/M header to each part
         total = len(parts)
         first_out = None
-        base_name = f"{date_str}_{time_str}_{title}"
+        base_name = f"{date_str}_{time_str}_{title}_ctx"
         for i, part_content in enumerate(parts, 1):
             part_header = f"> Part {i}/{total}\n\n"
             out_file = output_dir / f"{base_name}_part{i}.md"
