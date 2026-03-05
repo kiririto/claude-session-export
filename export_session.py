@@ -474,6 +474,18 @@ def _format_date(timestamp: str) -> str:
         return timestamp[:10]
 
 
+def _format_time_for_file(timestamp: str) -> str:
+    """Return HH-MM in local time from an ISO timestamp string."""
+    if not timestamp:
+        return "0000"
+    try:
+        dt = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+        local_dt = dt.astimezone()
+        return local_dt.strftime("%H-%M")
+    except Exception:
+        return "0000"
+
+
 def _format_datetime(timestamp: str) -> str:
     """Return YYYY-MM-DD HH:MM in local time from an ISO timestamp string."""
     if not timestamp:
