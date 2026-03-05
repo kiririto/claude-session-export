@@ -57,7 +57,7 @@ python export_session.py --all -o C:/Download/exports
 
 ## Output Format
 
-Filename: `{YYYY-MM-DD}_{first-user-message-50chars}.md`
+Filename: `{YYYY-MM-DD}_{HH-MM}_{first-user-message-50chars}_ctx.md`
 
 Content structure:
 - Session header (date, message count, session ID)
@@ -66,7 +66,7 @@ Content structure:
 - Tool results truncated at 500 chars
 - Plan files embedded at the top (`## Plan: {filename}`) before the conversation
 - Subagents appended in a separate section `## Subagent: {id}`
-- Large sessions auto-split into `_part1.md`, `_part2.md`... at `## Subagent:` boundaries (max 1800 lines/file)
+- Large sessions auto-split into `_ctx_part1.md`, `_ctx_part2.md`... at `## Subagent:` boundaries (max 1200 lines/file)
 
 ## Session List Display
 
@@ -93,3 +93,12 @@ Content structure:
 - `slug` field exists as a top-level entry field (not inside `message`); **last occurrence wins** so `/rename` is reflected
 - Plan files detected via `Write` tool calls targeting `.claude/plans/*.md` paths; content read and prepended to output
 - Default output directory resolved at runtime via `_get_downloads_folder()`: reads `HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders\{374DE290-123F-4565-9164-39C4925E467B}` on Windows; falls back to `~/Downloads`
+
+## ctx File Marker
+
+All exported files have a `_ctx` suffix in the filename:
+- Single file: `2026-03-05_14-23_my-session_ctx.md`
+- Multi-part: `2026-03-05_14-23_my-session_ctx_part1.md`
+
+This marker signals to Claude Code that the file is a session export and should be read directly
+(not summarized via Task agent). See `hooks/check_ctx_file_agent.py` for enforcement.
