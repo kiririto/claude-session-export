@@ -538,7 +538,7 @@ def cmd_list(projects_dir: Path):
     all_infos = sorted(
         [get_session_info(f) for f in find_sessions(projects_dir)],
         key=lambda x: x["last_timestamp"] or x["timestamp"],
-        reverse=True,
+        reverse=False,
     )
     if not all_infos:
         print("No sessions found.")
@@ -569,7 +569,7 @@ def cmd_interactive(projects_dir: Path, output_dir: Path, include_subagents: boo
     all_infos = sorted(
         [get_session_info(f) for f in find_sessions(projects_dir)],
         key=lambda x: x["last_timestamp"] or x["timestamp"],
-        reverse=True,
+        reverse=False,
     )
     if not all_infos:
         print("No sessions found.")
@@ -621,7 +621,10 @@ def cmd_export_query(projects_dir: Path, query: str, output_dir: Path, include_s
         target = matches[0]
     else:
         print(f"Found {len(matches)} matching sessions:\n")
-        infos = [get_session_info(f) for f in matches]
+        infos = sorted(
+            [get_session_info(f) for f in matches],
+            key=lambda x: x["last_timestamp"] or x["timestamp"]
+        )
         for i, info in enumerate(infos, 1):
             dt = _format_datetime(info["last_timestamp"] or info["timestamp"])
             n = info["msg_count"]
