@@ -59,7 +59,7 @@ DEFAULT_OUTPUT_DIR = _get_downloads_folder()
 TOOL_RESULT_MAX_CHARS = 500
 
 # Max lines per output file (Claude Code Read tool hard limit is 2000 lines)
-MAX_LINES_PER_FILE = 1800
+MAX_LINES_PER_FILE = 1200
 
 
 # ─── Session discovery ────────────────────────────────────────────────────────
@@ -474,6 +474,18 @@ def _format_date(timestamp: str) -> str:
         return timestamp[:10]
 
 
+def _format_time_for_file(timestamp: str) -> str:
+    """Return HH-MM in local time from an ISO timestamp string."""
+    if not timestamp:
+        return "0000"
+    try:
+        dt = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+        local_dt = dt.astimezone()
+        return local_dt.strftime("%H-%M")
+    except Exception:
+        return "0000"
+
+
 def _format_datetime(timestamp: str) -> str:
     """Return YYYY-MM-DD HH:MM in local time from an ISO timestamp string."""
     if not timestamp:
@@ -499,16 +511,17 @@ def export_session(jsonl_file: Path, output_dir: Path, include_subagents: bool =
     md = messages_to_markdown(messages, info)
 
     date_str = _format_date(info["timestamp"])
+    time_str = _format_time_for_file(info["timestamp"])
     title = _sanitize_filename(info["first_message"])
     output_dir.mkdir(parents=True, exist_ok=True)
 
     parts = _split_markdown(md, MAX_LINES_PER_FILE)
 
     if len(parts) == 1:
-        out_file = output_dir / f"{date_str}_{title}.md"
+        out_file = output_dir / f"{date_str}_{time_str}_{title}_ctx.md"
         counter = 1
         while out_file.exists():
-            out_file = output_dir / f"{date_str}_{title}_{counter}.md"
+            out_file = output_dir / f"{date_str}_{time_str}_{title}_ctx_{counter}.md"
             counter += 1
         out_file.write_text(parts[0], encoding="utf-8")
         return out_file
@@ -516,7 +529,7 @@ def export_session(jsonl_file: Path, output_dir: Path, include_subagents: bool =
         # Multi-part: add Part N/M header to each part
         total = len(parts)
         first_out = None
-        base_name = f"{date_str}_{title}"
+        base_name = f"{date_str}_{time_str}_{title}_ctx"
         for i, part_content in enumerate(parts, 1):
             part_header = f"> Part {i}/{total}\n\n"
             out_file = output_dir / f"{base_name}_part{i}.md"
@@ -538,7 +551,7 @@ def cmd_list(projects_dir: Path):
     all_infos = sorted(
         [get_session_info(f) for f in find_sessions(projects_dir)],
         key=lambda x: x["last_timestamp"] or x["timestamp"],
-        reverse=True,
+        reverse=False,
     )
     if not all_infos:
         print("No sessions found.")
@@ -569,7 +582,7 @@ def cmd_interactive(projects_dir: Path, output_dir: Path, include_subagents: boo
     all_infos = sorted(
         [get_session_info(f) for f in find_sessions(projects_dir)],
         key=lambda x: x["last_timestamp"] or x["timestamp"],
-        reverse=True,
+        reverse=False,
     )
     if not all_infos:
         print("No sessions found.")
@@ -621,7 +634,10 @@ def cmd_export_query(projects_dir: Path, query: str, output_dir: Path, include_s
         target = matches[0]
     else:
         print(f"Found {len(matches)} matching sessions:\n")
-        infos = [get_session_info(f) for f in matches]
+        infos = sorted(
+            [get_session_info(f) for f in matches],
+            key=lambda x: x["last_timestamp"] or x["timestamp"]
+        )
         for i, info in enumerate(infos, 1):
             dt = _format_datetime(info["last_timestamp"] or info["timestamp"])
             n = info["msg_count"]
