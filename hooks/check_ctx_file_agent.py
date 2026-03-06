@@ -15,6 +15,32 @@ def main():
         tool_name = input_data.get("tool_name", "")
         tool_input = input_data.get("tool_input", {})
 
+        # Read ツール: _ctx ファイルを limit なしで読む場合はブロック
+        if tool_name == "Read":
+            file_path = tool_input.get("file_path", "")
+            if re.search(r'_ctx(_part\d+)?\.md', file_path):
+                if tool_input.get("limit") is None:
+                    warning = (
+                        "CTX FILE READ BLOCKED\n\n"
+                        "_ctx.md files can exceed 50K characters (Claude Code persists-to-disk threshold).\n"
+                        "Reading without limit means only a 2KB preview enters context.\n\n"
+                        "CORRECT METHOD:\n"
+                        "  1. Check size: wc -l filename.md\n"
+                        "  2. If >650 lines: Read with limit=600, then offset=600 limit=600, etc.\n"
+                        "  3. If <=650 lines: Read with limit=<line_count> (explicit is required)\n\n"
+                        "See CLAUDE.md 'Session Export Files (ctx files)' for details.\n"
+                    )
+                    sys.stderr.write("\n" + "=" * 60 + "\n")
+                    sys.stderr.write(warning)
+                    sys.stderr.write("=" * 60 + "\n\n")
+                    print(json.dumps({
+                        "action": "block",
+                        "reason": warning
+                    }))
+                    sys.exit(2)
+            print(json.dumps({"status": "ok"}))
+            sys.exit(0)
+
         # Task ツール呼び出しのみ対象
         if tool_name != "Task":
             print(json.dumps({"status": "ok"}))
