@@ -114,3 +114,12 @@ Summarize key decisions and code changes in [filename]...
 ```
 
 The hook allows this through while still blocking unauthorized agent reads.
+
+### Automatic Size Detection (Read tool)
+
+When reading a ctx file without a `limit` parameter, the hook automatically:
+- Reads the file and counts characters
+- If < 50K chars: allows through (safe to read fully)
+- If ≥ 50K chars: blocks with an auto-calculated chunk size suggestion
+
+No need to manually check file size — the hook provides the correct chunk size.

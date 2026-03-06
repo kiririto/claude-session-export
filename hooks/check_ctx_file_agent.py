@@ -15,29 +15,46 @@ def main():
         tool_name = input_data.get("tool_name", "")
         tool_input = input_data.get("tool_input", {})
 
-        # Read ツール: _ctx ファイルを limit なしで読む場合はブロック
+        # Read ツール: _ctx ファイルを limit なしで読む場合はファイルサイズを確認
         if tool_name == "Read":
             file_path = tool_input.get("file_path", "")
             if re.search(r'_ctx(_part\d+)?\.md', file_path):
                 if tool_input.get("limit") is None:
-                    warning = (
-                        "CTX FILE READ BLOCKED\n\n"
-                        "_ctx.md files can exceed 50K characters (Claude Code persists-to-disk threshold).\n"
-                        "Reading without limit means only a 2KB preview enters context.\n\n"
-                        "CORRECT METHOD:\n"
-                        "  1. Check size: wc -l filename.md\n"
-                        "  2. If >650 lines: Read with limit=600, then offset=600 limit=600, etc.\n"
-                        "  3. If <=650 lines: Read with limit=<line_count> (explicit is required)\n\n"
-                        "See CLAUDE.md 'Session Export Files (ctx files)' for details.\n"
-                    )
-                    sys.stderr.write("\n" + "=" * 60 + "\n")
-                    sys.stderr.write(warning)
-                    sys.stderr.write("=" * 60 + "\n\n")
-                    print(json.dumps({
-                        "action": "block",
-                        "reason": warning
-                    }))
-                    sys.exit(2)
+                    # ファイルの実際の文字数を確認して自動判断
+                    CHAR_THRESHOLD = 50000
+                    try:
+                        with open(file_path, 'r', encoding='utf-8', errors='replace') as f:
+                            content = f.read()
+                        char_count = len(content)
+
+                        if char_count >= CHAR_THRESHOLD:
+                            # 50K超: 適切なチャンクサイズを計算してブロック
+                            line_count = content.count('\n') + 1
+                            # 1チャンクが45K文字以下になる行数を計算（安全マージン10%）
+                            chunk_size = max(50, int(45000 * line_count / char_count))
+                            warning = (
+                                f"CTX FILE READ BLOCKED\n\n"
+                                f"File: {char_count:,} characters ({line_count} lines) — "
+                                f"exceeds {CHAR_THRESHOLD:,} char limit.\n"
+                                f"Reading without limit means only a 2KB preview enters context.\n\n"
+                                f"CORRECT METHOD (auto-calculated chunk size):\n"
+                                f"  Read with limit={chunk_size}\n"
+                                f"  then offset={chunk_size} limit={chunk_size}\n"
+                                f"  repeat until all {line_count} lines are read\n\n"
+                                f"See CLAUDE.md 'Session Export Files (ctx files)' for details.\n"
+                            )
+                            sys.stderr.write("\n" + "=" * 60 + "\n")
+                            sys.stderr.write(warning)
+                            sys.stderr.write("=" * 60 + "\n\n")
+                            print(json.dumps({
+                                "action": "block",
+                                "reason": warning
+                            }))
+                            sys.exit(2)
+                        # 50K未満: limit なしでも安全、許可
+                    except (OSError, IOError):
+                        # ファイル読み取り失敗: Readツール自体にエラー処理を任せる
+                        pass
             print(json.dumps({"status": "ok"}))
             sys.exit(0)
 
