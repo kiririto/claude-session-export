@@ -102,3 +102,15 @@ All exported files have a `_ctx` suffix in the filename:
 
 This marker signals to Claude Code that the file is a session export and should be read directly
 (not summarized via Task agent). See `hooks/check_ctx_file_agent.py` for enforcement.
+
+### Hook Bypass for Middle Parts
+
+For sessions with 3+ parts, the middle parts may be read via a Task agent (Explore) for summarization.
+To bypass the hook in this case, include `AUTHORIZED_CTX_MIDDLE_PART` in the agent prompt:
+
+```
+AUTHORIZED_CTX_MIDDLE_PART
+Summarize key decisions and code changes in [filename]...
+```
+
+The hook allows this through while still blocking unauthorized agent reads.

@@ -24,6 +24,11 @@ def main():
 
         # _ctx.md ファイルへの言及を検出
         if re.search(r'_ctx(_part\d+)?\.md', prompt):
+            # 中間パート要約の明示的な承認マーカーがあれば許可
+            if 'AUTHORIZED_CTX_MIDDLE_PART' in prompt:
+                print(json.dumps({"status": "ok"}))
+                sys.exit(0)
+
             warning = (
                 "CTX FILE AGENT READ BLOCKED\n\n"
                 "_ctx.md files are Claude Code session exports. "
@@ -31,7 +36,7 @@ def main():
                 "CORRECT METHOD:\n"
                 "  - 1-2 parts per session: Read all parts directly\n"
                 "  - 3+ parts per session: Read part1 + last part directly; "
-                "agent for middle parts only\n\n"
+                "middle parts via agent with 'AUTHORIZED_CTX_MIDDLE_PART' marker in prompt\n\n"
                 "See CLAUDE.md 'Session Export Files (ctx files)' for details.\n"
             )
             sys.stderr.write("\n" + "=" * 60 + "\n")
